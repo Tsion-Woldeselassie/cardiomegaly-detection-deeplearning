@@ -1,0 +1,17 @@
+name: cardiomegaly-env
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy
+  - pandas
+  - matplotlib
+  - scikit-learn
+  - tensorflow=2.12
+  - keras
+  - pillow
+  - seaborn
+  - pip
+  - pip:
+      - opencv-python
