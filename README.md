@@ -1,103 +1,148 @@
 # Cardiomegaly Detection Using Deep Learning
 
-This project applies deep learning methods to classify chest X-ray images as **cardiomegaly** (enlarged heart) or **normal**. It uses the publicly available *Cardiomegaly Disease Prediction* dataset from Kaggle and implements an EfficientNet-B0 model trained and evaluated in Google Colab.
+This project applies convolutional neural networks (CNNs) and transfer learning to classify chest X-ray images as **cardiomegaly present (true)** or **absent (false)**.  
+The dataset consists of labeled chest X-ray images and the entire workflow included preprocessing, model training, evaluation, and interpretation.
 
----
 
 ## Project Overview
 
-Cardiomegaly is an important clinical indicator of cardiovascular disease. The goal of this project is to build an automated image-classification model that can assist in identifying this condition from X-ray scans.
+The goal of this project is to build a complete computer vision pipeline that:
 
-This repo contains:
-- The **Collab notebook** used for training and evaluation  
-- Supporting documentation  
-- AI usage notes  
-- A written project report (coming soon)
+- Loads and preprocesses chest X-ray images  
+- Applies data augmentation to improve generalization  
+- Trains a **baseline CNN**  
+- Evaluates two transfer learning models: **MobileNetV2** and **EfficientNetB3**  
+- Compares model performance using accuracy, loss curves, classification reports, and confusion matrices  
 
----
+Cardiomegaly is subtle and difficult to detect visually, making this a realistic and challenging medical imaging problem.
 
-## Model Summary
-Model architecture:
-- EfficientNet-B0 (ImageNet pretrained, frozen base)
-- Batch Normalization
-- Dense(256) + ReLU
-- Dropout(0.2)
-- Dense(2) Softmax output
 
-Training details:
-- Epochs: 10  
-- Batch size: 16  
-- Loss: Categorical Crossentropy  
-- Optimizer: Adamax (lr=0.0005)
 
-Performance:
-- Test accuracy: **~67%**
-- Balanced precision/recall across classes
 
----
+## Dataset Description
 
-## Dataset
+- **Source:** Chest X-ray dataset containing cardiomegaly annotations  
+- **Classes:**  
+  - `true` → cardiomegaly present  
+  - `false` → no cardiomegaly  
+- **Image counts:**  
+  - Training: **3,551 images**  
+  - Validation: **887 images**  
+  - Test: **1,114 images**  
+- **Preprocessing steps:**  
+  - Resizing each image to **224×224**  
+  - Normalizing pixel values  
+  - Data augmentation: rotation, translation, zoom, and contrast adjustments  
 
-Kaggle Dataset:  
-**Cardiomegaly Disease Prediction using CNN**  
-https://www.kaggle.com/datasets/rahimanshu/cardiomegaly-disease-prediction-using-cnn
+**Dataset challenges:**
 
-Dataset Structure:
-- Train: 3550 images  
-- Test: 1114 images  
-- Labels: `true` (cardiomegaly), `false` (normal)
+- High variance in brightness and exposure  
+- Medical artifacts (wires, implants, pacemakers)  
+- Borderline cardiomegaly cases look extremely similar to normal cases  
+- Anatomical differences across patients  
 
-All images resized to **224 × 224** and normalized before training.
 
----
 
-## How to Run
+## Methods
 
-1. Open the notebook in Google Colab  
-2. Upload and unzip the dataset  
-3. Run preprocessing + training cells  
-4. Evaluate on test set  
-5. Modify architecture or hyperparameters as desired
+###  Preprocessing
 
----
+- `tf.data` pipeline with caching + prefetching  
+- Normalization using `Rescaling(1./255)`  
+- Data augmentation applied during training only:  
+  - Small rotations  
+  - Translations  
+  - Zoom  
+  - Contrast shifts  
 
-## Requirements
 
-- Python 3.10+
-- tensorflow >= 2.10
-- numpy
-- pandas
-- scikit-learn
-- matplotlib
-- seaborn
+### Models
 
-(Colab already includes all dependencies.)
+### **1. Baseline CNN**
+A simple convolutional neural network used as the starting point.  
+This model included:
 
----
+- Convolution + MaxPooling layers  
+- Flatten → Dense layers  
+- Dropout for regularization  
+- Sigmoid output for binary classification  
 
-## Project Status
 
-- [x] Data preprocessing  
-- [x] EfficientNet-B0 training  
-- [x] Evaluation (accuracy, confusion matrix, classification report)  
-- [x] Draft report completed  
-- [ ] Improve model performance  
-- [ ] Add augmentation / fine-tuning  
-- [ ] Upload final report  
 
----
+### **2. MobileNetV2 (Transfer Learning)**
+
+- Pretrained on ImageNet  
+- Feature extraction with selective fine-tuning  
+- Lightweight architecture suitable for fast training  
+- Performance improved over the baseline but limited by dataset complexity  
+
+
+### **3. EfficientNetB3 (Transfer Learning)**
+
+- Pretrained on ImageNet  
+- More expressive architecture with compound scaling  
+- Higher recall for cardiomegaly, which is important for clinical screening  
+
+
+
+## Results Summary
+
+| Model | Recall | Notable Strengths |
+|-------|--------------|------------------|
+| **Baseline CNN** | 0.64 | Simple, stable, forms a solid reference |
+| **MobileNetV2** | 0.65 | Lightweight, good generalization |
+| **EfficientNetB3** | 0.88 (best overall)** | Strong recall on cardiomegaly cases |
+
+### Additional Observations
+
+- EfficientNetB3 captured heart-size differences better than MobileNetV2.  
+- Baseline performance was surprisingly competitive because augmentation helped prevent overfitting.  
+- Overall accuracy remained around ~0.63–0.64 due to dataset noise + medical complexity.
+
+
+## Interpretation & Lessons Learned
+
+- Cardiomegaly can be subtle—CNNs struggle when the enlargement is mild or when rib shadows overlap the heart border.
+- Data augmentation helps but cannot fix mislabeled or low-quality images.
+- Transfer learning improves performance but is limited by dataset size and label quality.
+- EfficientNetB3 was the most clinically useful model due to its higher recall on positive cases.
+
+
+## Future Improvements
+
+If extending the project:
+
+- Add **Grad-CAM** visualizations for interpretability  
+- Use segmentation to measure **cardiothoracic ratio (CTR)** directly  
+- Apply learning rate scheduling and hyperparameter tuning  
+- Train on a larger dataset
+
+
+## Reproducibility
+
+This project includes:
+
+- **Complete notebook** with all code and outputs  
+- **README.md** describing data, methods, results, and interpretation  
+- **ai_usage.md** documenting how AI assistance was used  
+
+
+## AI Usage Disclosure
+
+ChatGPT was used for:
+
+- Code debugging (e.g., shape mismatches, augmentation placement)  
+
+
 
 ## References
 
-- Tan, M., & Le, Q. V. (2019). EfficientNet: Rethinking Model Scaling. *ICML*.  
-- Cohen, J. P., Vivion, A., & Chaudhari, N. (2020). Medical Imaging for AI. *Nature Medicine*.  
-- Kaggle Dataset (Rahimanshu, 2021)
+- Tan, M., & Le, Q. (2019). *EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks.*  
+- Howard, A. et al. (2017). *MobileNetV2: Inverted Residuals and Linear Bottlenecks.*  
+- TensorFlow Documentation – https://www.tensorflow.org/api_docs  
+- Kaggle: Cardiomegaly X-ray Dataset (dataset source)
 
 ---
-
-## Acknowledgements
-
-Special thanks to Kaggle dataset creators and academic researchers advancing medical imaging AI.
 
 
 
