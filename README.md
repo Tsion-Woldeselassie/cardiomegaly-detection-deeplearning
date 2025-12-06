@@ -102,10 +102,13 @@ This model included:
 
 ## Interpretation & Lessons Learned
 
-- Cardiomegaly can be subtle—CNNs struggle when the enlargement is mild or when rib shadows overlap the heart border.
-- Data augmentation helps but cannot fix mislabeled or low-quality images.
-- Transfer learning improves performance but is limited by dataset size and label quality.
-- EfficientNetB3 was the most clinically useful model due to its higher recall on positive cases.
+The goal of this project was to build a model capable of detecting cardiomegaly from chest X-ray images. Across all experiments, recall—especially for the true (cardiomegaly) class—became the most important metric. Missing cardiomegaly cases can have serious clinical consequences, so I prioritized reducing false negatives over maximizing overall accuracy.
+
+My baseline CNN was able to learn general patterns but could not capture enough spatial detail, resulting in unstable validation performance. Transfer learning improved results: MobileNetV2 achieved more stable behavior, while EfficientNetB3 delivered the strongest recall (0.88) and the lowest number of missed cardiomegaly cases. This confirmed that deeper pretrained models generalize better on subtle medical features.
+
+Throughout the project, I made many attempts to improve accuracy. I experimented with multiple augmentation strategies (rotations, translations, zoom, contrast adjustments), tried different training pipelines, adjusted batch sizes, and even attempted to train EfficientNetB7 (more advanced model). That model crashed due to memory limits, and I had to restart with different approach. Despite all of these efforts, overall accuracy remained difficult to improve. This is largely due to the challenging nature of the dataset: images vary widely in brightness, contain medical devices, and include many borderline cases where cardiomegaly is visually subtle. Even advanced models struggle to separate these ambiguous examples.
+
+Overall, the results show that deep learning can detect cardiomegaly with moderate performance, and recall can be improved by using stronger pretrained models. However, achieving high accuracy on this dataset would likely require more labeled data, clearer clinical annotations, or integrating segmentation methods that highlight the heart region directly. This project demonstrated the complexity of real medical imaging tasks and the limitations of working with difficult datasets, even when using state-of-the-art models.
 
 
 ## Future Improvements
